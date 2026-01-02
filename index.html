@@ -2,7 +2,10 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 禁止縮放設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>交通出行</title>
     <style>
         :root {
@@ -16,6 +19,22 @@
             --tab-bar-height: 60px;
         }
 
+        /* --- 全域禁止選取與系統選單 --- */
+        * {
+            -webkit-user-select: none; /* Safari/Chrome */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* IE/Edge */
+            user-select: none;         /* Standard */
+            -webkit-touch-callout: none; /* 禁止 iOS 長按彈出選單 */
+            -webkit-tap-highlight-color: transparent; /* 移除點擊高亮色塊 */
+        }
+
+        /* 恢復表單元件的互動性 */
+        select, input, textarea {
+            -webkit-user-select: auto;
+            user-select: auto;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
@@ -24,6 +43,8 @@
             padding-bottom: calc(var(--tab-bar-height) + 20px);
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
+            overscroll-behavior-y: none;
+            touch-action: pan-y; 
         }
 
         .container { max-width: 500px; margin: 0 auto; }
@@ -95,10 +116,9 @@
         .kmb-header { background: linear-gradient(135deg, #E3001B, #C20017); }
         .mtr-header { background: linear-gradient(135deg, #0072BC, #005691); }
         
-        /* 藥丸標籤 (Pill Badges) */
+        /* 藥丸標籤 */
         .stop-detail { font-size: 0.75rem; color: var(--kmb-red); background: white; padding: 4px 10px; border-radius: 12px; font-weight: 700; }
         
-        /* 港鐵方向標籤 (右側) */
         .stop-detail-mtr { 
             font-size: 0.75rem; 
             color: var(--mtr-blue); 
@@ -108,7 +128,8 @@
             font-weight: 700; 
             white-space: nowrap;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-left: auto; /* 自動靠右 */
+            margin-left: auto; 
+            cursor: pointer;
         }
 
         .plat-badge { font-size: 0.75rem; background: var(--mtr-blue); color: white; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
@@ -117,23 +138,21 @@
         .station-select {
             appearance: none;
             -webkit-appearance: none;
-            /* 毛玻璃半透明效果 */
             background-color: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
             font-size: 1.1rem;
             font-weight: 700;
-            padding: 6px 32px 6px 12px; /* 右側留位給箭頭 */
-            border-radius: 12px; /* 更圓潤 */
+            padding: 6px 32px 6px 12px;
+            border-radius: 12px;
             cursor: pointer;
             outline: none;
             font-family: inherit;
-            /* 自訂箭頭 (更精緻的 SVG) */
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
             background-repeat: no-repeat;
             background-position: right 6px center;
             background-size: 20px;
-            margin: 0 4px; /* 與前後文字的間距 */
+            margin: 0 4px;
             transition: all 0.2s;
         }
         
@@ -142,17 +161,9 @@
             border-color: rgba(255, 255, 255, 0.6);
         }
 
-        .station-select option {
-            background-color: white;
-            color: #333;
-            font-weight: normal;
-        }
+        .station-select option { background-color: white; color: #333; font-weight: normal; }
         
-        .header-text {
-            font-size: 1.1rem;
-            font-weight: 700;
-            white-space: nowrap;
-        }
+        .header-text { font-size: 1.1rem; font-weight: 700; white-space: nowrap; }
 
         /* 方向切換 (Tab 1) */
         .direction-switch { display: flex; background: rgba(0, 0, 0, 0.2); padding: 3px; border-radius: 8px; gap: 2px; }
@@ -164,16 +175,28 @@
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* 底部導航 */
         .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: var(--tab-bar-height); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-top: 1px solid #E5E5EA; display: flex; justify-content: space-around; align-items: center; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
         .tab-item { flex: 1; text-align: center; padding: 8px 0; color: #C7C7CC; cursor: pointer; font-size: 0.7rem; transition: color 0.2s; }
         .tab-item.active { color: var(--accent); transform: scale(1.05); }
         .tab-icon { display: block; font-size: 1.5rem; margin-bottom: 2px; }
 
-        button.refresh-btn { background-color: white; color: var(--accent); border: 1px solid var(--accent); width: 100%; padding: 12px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 10px; }
-        button.refresh-btn:active { background-color: #F0F0F5; }
+        /* 署名水印 */
+        .watermark {
+            position: fixed;
+            bottom: calc(var(--tab-bar-height) + 10px);
+            right: 16px;
+            font-size: 0.6rem;
+            color: #C7C7CC;
+            pointer-events: none;
+            z-index: 900;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
 <div class="container">
     <header>
@@ -218,10 +241,8 @@
             <div class="card-header mtr-header">
                 <span class="icon">🚇</span>
                 
-                <!-- 新增：靜態文字 -->
                 <span class="header-text">港鐵</span>
                 
-                <!-- 車站選擇器 (美化版) -->
                 <select id="station-select" class="station-select" onchange="switchReturnStation(this.value)">
                     <optgroup label="市區/南面 (往羅湖/落馬洲)">
                         <option value="ADM" selected>金鐘</option>
@@ -244,10 +265,8 @@
                     </optgroup>
                 </select>
                 
-                <!-- 新增：靜態文字 -->
                 <span class="header-text">站</span>
 
-                <!-- 右側方向標籤 (White Pill) -->
                 <span id="dest-label" class="stop-detail-mtr">往羅湖/落馬洲</span>
             </div>
             <div id="mtr-list-2" class="card-content">
@@ -267,9 +286,10 @@
             </div>
         </div>
     </div>
-
-    <button class="refresh-btn" onclick="refreshAll()">🔄 立即更新</button>
 </div>
+
+<!-- 署名水印 -->
+<div class="watermark">Designed by Anson Lam</div>
 
 <!-- 底部導航 -->
 <nav class="tab-bar">
@@ -284,6 +304,9 @@
 </nav>
 
 <script>
+    // --- 防止雙指縮放等手勢 ---
+    document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+
     // --- 工具 ---
     const formatTime = (iso) => iso ? new Date(iso).toLocaleTimeString('zh-HK', {hour:'2-digit', minute:'2-digit', hour12:false}) : '--:--';
     const getMins = (iso) => {
@@ -296,10 +319,8 @@
     let validKmbStopId_PokYin = null;
     let validKmbStopId_Uni = null;
     let mtrUniDirection = 'DOWN';
-    let selectedReturnStation = 'ADM'; // 分頁2 選擇的車站
+    let selectedReturnStation = 'ADM';
 
-    // --- 車站方向配置 (智能判斷) ---
-    // UP = 北行 (往羅湖/落馬洲), DOWN = 南行 (往金鐘)
     const mtrConfig = {
         'ADM': { dir: 'UP', label: '往羅湖/落馬洲' }, 'EXC': { dir: 'UP', label: '往羅湖/落馬洲' },
         'HOM': { dir: 'UP', label: '往羅湖/落馬洲' }, 'MKK': { dir: 'UP', label: '往羅湖/落馬洲' },
@@ -336,17 +357,11 @@
     function switchReturnStation(stationCode) {
         if (selectedReturnStation === stationCode) return;
         selectedReturnStation = stationCode;
-        
-        // 更新標籤文字
         const config = mtrConfig[stationCode];
-        if (config) {
-            document.getElementById('dest-label').innerText = config.label;
-        }
-
+        if (config) document.getElementById('dest-label').innerText = config.label;
         smoothRefresh('mtr-list-2', fetchMTR_Return);
     }
 
-    // --- 通用平滑刷新函數 ---
     function smoothRefresh(elementId, fetchFunc) {
         const el = document.getElementById(elementId);
         el.classList.add('fading');
@@ -421,13 +436,11 @@
     }
 
     // --- MTR 邏輯 ---
-    // Tab 1: 大學站
     async function fetchMTR_Uni() {
         if(currentTab !== 1) return;
         await renderMTR('UNI', document.getElementById('mtr-list-1'), mtrUniDirection);
     }
 
-    // Tab 2: 回程 (智能方向)
     async function fetchMTR_Return() {
         if(currentTab !== 2) return;
         const config = mtrConfig[selectedReturnStation];
@@ -486,7 +499,7 @@
         }
     }
 
-    // 啟動
+    // 啟動 (30秒自動更新)
     refreshAll();
     setInterval(refreshAll, 30000);
 
